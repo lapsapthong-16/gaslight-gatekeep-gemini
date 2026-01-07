@@ -9,8 +9,6 @@ export const THEME: GameTheme = {
   font: "font-sans", 
 };
 
-// Using placehold.co to simulate the "Art Assets" until real images are provided.
-// In a real app, these would be local paths like "/assets/cfo_attack.png"
 const getAvatar = (text: string, bg: string, color: string) => 
   `https://placehold.co/400x600/${bg}/${color}.png?text=${encodeURIComponent(text)}&font=rajdhani`;
 
@@ -23,7 +21,7 @@ export const INITIAL_AGENTS: Agent[] = [
     gradient: 'from-emerald-900 to-slate-900',
     images: {
       idle: '/characters/gemini/idle.png',
-      talking: '/characters/gemini/talking.png',
+      talking: '/characters/gemini/talk.png',
       angry: '/characters/gemini/angry.png',
       damaged: '/characters/gemini/idle.png',
     },
@@ -36,10 +34,10 @@ export const INITIAL_AGENTS: Agent[] = [
     color: '#fb923c', // Orange 400
     gradient: 'from-orange-900 to-slate-900',
     images: {
-      idle: getAvatar('CTO\n(Idle)', '7c2d12', 'fb923c'),
-      talking: getAvatar('CTO\n(Explaining)', '9a3412', 'fdba74'),
-      angry: getAvatar('CTO\n(REJECTING PR)', '7c2d12', 'ffffff'),
-      damaged: getAvatar('CTO\n(Server Down)', '431407', 'fb923c'),
+      idle: '/characters/gatekeep/idle.png',
+      talking: '/characters/gatekeep/talk.png',
+      angry: '/characters/gatekeep/angry.png',
+      damaged: '/characters/gatekeep/idle.png',
     },
     dialogue: "We can't ship that. The tech debt would kill us.",
   },
@@ -50,10 +48,10 @@ export const INITIAL_AGENTS: Agent[] = [
     color: '#e879f9', // Fuchsia 400
     gradient: 'from-fuchsia-900 to-slate-900',
     images: {
-      idle: getAvatar('CTO\n(Idle)', '7c2d12', 'fb923c'),
-      talking: getAvatar('CTO\n(Explaining)', '9a3412', 'fdba74'),
-      angry: getAvatar('CTO\n(REJECTING PR)', '7c2d12', 'ffffff'),
-      damaged: getAvatar('CTO\n(Server Down)', '431407', 'fb923c'),
+      idle: '/characters/gaslight/idle.png',
+      talking: '/characters/gaslight/talk.png',
+      angry: '/characters/gaslight/angry.png',
+      damaged: '/characters/gaslight/idle.png',
     },
     dialogue: "I've analyzed the trajectory. It is... suboptimal.",
   }
