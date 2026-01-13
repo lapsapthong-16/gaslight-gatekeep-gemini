@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import pdf from "pdf-parse";
 import { parse } from "csv-parse/sync";
+import * as XLSX from "xlsx";
 
 // 'export' allow other scripts to use the function
 export async function ingestFile(userInput) {
@@ -25,7 +26,7 @@ export async function ingestFile(userInput) {
     throw new Error("Unsupported file type: " + filetype);
 }
 
-// Function to transform PDF files
+// Function to transform PDF files (For now only works for text-based PDFs)
 async function transformPDF(userInput) {
     console.log("Transforming PDF...", userInput);
     const buffer = fs.readFileSync(userInput);
@@ -55,7 +56,16 @@ function transformCSV(userInput) {
 
 function transformExcel(userInput) {
     console.log("Transforming Excel...", userInput);
-    // TODO: Implement Excel transformation
+
+    const workbook = XLSX.readFile(userInput);
+    const sheetName = workbook.SheetNames[0];
+    const worksheet = workbook.Sheets[sheetName];
+    const data = XLSX.utils.sheet_to_json(worksheet);
+    return {
+        source: path.basename(userInput),
+        type: "tabular",
+        content: data
+    };
 }
 
 
