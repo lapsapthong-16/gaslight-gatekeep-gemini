@@ -16,6 +16,11 @@ export async function ingestFile(userInput) {
         return transformCSV(userInput);
     }
 
+    // 2 types of Excel file formats
+    if (filetype == ".xlsx" || filetype == ".xls") {
+        return transformExcel(userInput);
+    }
+
     // Notify user regarding the wrong file type
     throw new Error("Unsupported file type: " + filetype);
 }
@@ -47,3 +52,11 @@ function transformCSV(userInput) {
         content: results
     };
 }
+
+function transformExcel(userInput) {
+    console.log("Transforming Excel...", userInput);
+    // TODO: Implement Excel transformation
+}
+
+
+//Tip: If the PDF has scanned images, you utilize Gemini Vision (pass the image directly) instead of trying to OCR it yourself.
