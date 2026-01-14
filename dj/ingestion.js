@@ -1,11 +1,11 @@
-import fs from "fs";
-import path from "path";
-import pdf from "pdf-parse";
-import { parse } from "csv-parse/sync";
-import * as XLSX from "xlsx";
+const fs = require("fs");
+const path = require("path");
+const pdf = require("pdf-parse");
+const { parse } = require("csv-parse/sync");
+const XLSX = require("xlsx");
 
 // 'export' allow other scripts to use the function
-export async function ingestFile(userInput) {
+async function ingestFile(userInput) {
     // Retrieve the file type for rerouting option
     const filetype = path.extname(userInput).toLowerCase();
 
@@ -83,3 +83,5 @@ function transformExcel(userInput) {
 
 
 //Tip: If the PDF has scanned images, you utilize Gemini Vision (pass the image directly) instead of trying to OCR it yourself.
+
+module.exports = { ingestFile };
