@@ -31,10 +31,23 @@ async function transformPDF(userInput) {
     console.log("Transforming PDF...", userInput);
     const buffer = fs.readFileSync(userInput);
     const data = await pdf(buffer)
+    const text = data.text?.trim() || "";
+
+    if (text.length < 50) {
+        return {
+            source: path.basename(userInput),
+            type: "document",
+            content: null,
+            extraction: "image",
+            note: "PDF appears to be scanned. Text extraction failed."
+        };
+    }
+
     return {
         source: path.basename(userInput),
         type: "document",
-        content: data.text
+        content: text,
+        extraction: "text"
     };
 }
 
@@ -58,7 +71,7 @@ function transformExcel(userInput) {
     console.log("Transforming Excel...", userInput);
 
     const workbook = XLSX.readFile(userInput);
-    const sheetName = workbook.SheetNames[0];
+    const sheetName = workbook.SheetNames[0];  // As of now only retrieve the first sheet from the Excel file
     const worksheet = workbook.Sheets[sheetName];
     const data = XLSX.utils.sheet_to_json(worksheet);
     return {
