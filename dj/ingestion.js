@@ -2,10 +2,11 @@
 import fs from "fs";
 import path from "path";
 
-import { createRequire } from "module";
-const require = createRequire(import.meta.url);
-
-const pdf = require("pdf-parse");
+// Using pdfjs-dist
+import * as pdfjs from 'pdfjs-dist/legacy/build/pdf.mjs';
+if (!pdfjs.GlobalWorkerOptions.workerPort) {
+    pdfjs.GlobalWorkerOptions.workerPort = null;
+}
 
 import { parse } from "csv-parse/sync";
 import XLSX from "xlsx";
@@ -37,23 +38,61 @@ export async function ingestFile(userInput) {
     throw new Error(`Unsupported file type: ${filetype}`);
 }
 
-// Function to transform PDF files (For now only works for text-based PDFs)
+// Function to transform PDF files
 async function transformPDF(userInput) {
-    console.log("Transforming PDF...", userInput);
+    console.log("Analyzing PDF structure...", userInput);
 
-    const buffer = fs.readFileSync(userInput); // read file into memory
+    const data = new Uint8Array(fs.readFileSync(userInput));
+    const loadingTask = pdfjs.getDocument({ data, verbosity: 0 });
 
-    const data = await pdf(buffer);        // pdf-parse parses the PDF buffer
+    const pdfDocument = await loadingTask.promise;
 
-    const text = data.text?.trim() || "";
-    const isScanned = text.length < 50;
+    let totalText = "";
+    let imageCount = 0;
+
+    // Loop through every page to inspect its contents
+    for (let i = 1; i <= pdfDocument.numPages; i++) {
+        const page = await pdfDocument.getPage(i);
+
+        // 1. Extract Text
+        const textContent = await page.getTextContent();
+        const pageText = textContent.items.map(item => item.str).join(" ");
+        totalText += pageText + "\n";
+
+        // 2. Look for Image Objects (The accurate way)
+        const operatorList = await page.getOperatorList();
+
+        // We look for specific "Paint Image" commands in the PDF's internal code
+        const hasImagesOnPage = operatorList.fnArray.some(
+            fn => fn === pdfjs.OPS.paintImageXObject || fn === pdfjs.OPS.paintInlineImageXObject
+        );
+
+        if (hasImagesOnPage) imageCount++;
+    }
+
+    // --- The Logic for Categorization ---
+    const hasSignificantText = totalText.trim().length > 50;
+    const hasImages = imageCount > 0;
+
+    let category = "";
+    if (hasSignificantText && hasImages) {
+        category = "mixed";
+    } else if (hasSignificantText && !hasImages) {
+        category = "text_only";
+    } else if (!hasSignificantText && hasImages) {
+        category = "image_only"; // This is a classic scanned document
+    } else {
+        category = "empty_or_vector"; // Likely just shapes or empty
+    }
 
     return {
         source: path.basename(userInput),
         type: "document",
-        content: isScanned ? null : text,
-        extraction: isScanned ? "image" : "text",
-        note: isScanned ? "PDF appears to be scanned. Text extraction failed." : null
+        pages: pdfDocument.numPages,
+        content: totalText.trim(),
+        extraction: category,
+        image_detected: hasImages,
+        note: category === "image_only" ? "Document is a scan. Need to send images to Gemini." : null
     };
 }
 
@@ -74,6 +113,7 @@ function transformCSV(userInput) {
     };
 }
 
+// Function to transform Excel files
 function transformExcel(userInput) {
     console.log("Transforming Excel...", userInput);
 
