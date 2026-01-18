@@ -1,11 +1,22 @@
-const fs = require("fs");
-const path = require("path");
+// Imports:
+import fs from "fs";
+import path from "path";
+
+import { createRequire } from "module";
+const require = createRequire(import.meta.url);
+
 const pdf = require("pdf-parse");
-const { parse } = require("csv-parse/sync");
-const XLSX = require("xlsx");
+
+import { parse } from "csv-parse/sync";
+import XLSX from "xlsx";
 
 // 'export' allow other scripts to use the function
-async function ingestFile(userInput) {
+export async function ingestFile(userInput) {
+    // Check if file exists
+    if (!fs.existsSync(userInput)) {
+        throw new Error(`File not found at path: ${userInput}`);
+    }
+
     // Retrieve the file type for rerouting option
     const filetype = path.extname(userInput).toLowerCase();
 
@@ -23,31 +34,26 @@ async function ingestFile(userInput) {
     }
 
     // Notify user regarding the wrong file type
-    throw new Error("Unsupported file type: " + filetype);
+    throw new Error(`Unsupported file type: ${filetype}`);
 }
 
 // Function to transform PDF files (For now only works for text-based PDFs)
 async function transformPDF(userInput) {
     console.log("Transforming PDF...", userInput);
-    const buffer = fs.readFileSync(userInput);
-    const data = await pdf(buffer)
-    const text = data.text?.trim() || "";
 
-    if (text.length < 50) {
-        return {
-            source: path.basename(userInput),
-            type: "document",
-            content: null,
-            extraction: "image",
-            note: "PDF appears to be scanned. Text extraction failed."
-        };
-    }
+    const buffer = fs.readFileSync(userInput); // read file into memory
+
+    const data = await pdf(buffer);        // pdf-parse parses the PDF buffer
+
+    const text = data.text?.trim() || "";
+    const isScanned = text.length < 50;
 
     return {
         source: path.basename(userInput),
         type: "document",
-        content: text,
-        extraction: "text"
+        content: isScanned ? null : text,
+        extraction: isScanned ? "image" : "text",
+        note: isScanned ? "PDF appears to be scanned. Text extraction failed." : null
     };
 }
 
@@ -63,7 +69,8 @@ function transformCSV(userInput) {
     return {
         source: path.basename(userInput),
         type: "tabular",
-        content: results
+        content: results,
+        extraction: "text"
     };
 }
 
@@ -74,14 +81,11 @@ function transformExcel(userInput) {
     const sheetName = workbook.SheetNames[0];  // As of now only retrieve the first sheet from the Excel file
     const worksheet = workbook.Sheets[sheetName];
     const data = XLSX.utils.sheet_to_json(worksheet);
+
     return {
         source: path.basename(userInput),
         type: "tabular",
-        content: data
+        content: data,
+        extraction: "text"
     };
 }
-
-
-//Tip: If the PDF has scanned images, you utilize Gemini Vision (pass the image directly) instead of trying to OCR it yourself.
-
-module.exports = { ingestFile };
