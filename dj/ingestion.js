@@ -39,7 +39,6 @@ export async function ingestFile(userInput) {
 }
 
 
-//TODO: Replace the current code with the one in Gemini <<<<<<<<<
 // Function to transform PDF files
 async function transformPDF(userInput) {
     console.log("Analyzing PDF for Gemini...", userInput);
@@ -77,7 +76,7 @@ async function transformPDF(userInput) {
     else if (!hasSignificantText && hasImages) category = "image_only";
     else category = "empty_or_vector";
 
-    // 3. Return the data optimized for Gemini
+    // Return the data optimized for Gemini
     return {
         source: path.basename(userInput),
         type: "document",
