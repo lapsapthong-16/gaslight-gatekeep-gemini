@@ -38,61 +38,59 @@ export async function ingestFile(userInput) {
     throw new Error(`Unsupported file type: ${filetype}`);
 }
 
+
+//TODO: Replace the current code with the one in Gemini <<<<<<<<<
 // Function to transform PDF files
 async function transformPDF(userInput) {
-    console.log("Analyzing PDF structure...", userInput);
+    console.log("Analyzing PDF for Gemini...", userInput);
 
-    const data = new Uint8Array(fs.readFileSync(userInput));
+    // 1. Read the file into a Buffer
+    const fileBuffer = fs.readFileSync(userInput);
+
+    // 2. Structural Analysis (Keeping your current logic)
+    const data = new Uint8Array(fileBuffer);
     const loadingTask = pdfjs.getDocument({ data, verbosity: 0 });
-
     const pdfDocument = await loadingTask.promise;
 
     let totalText = "";
     let imageCount = 0;
 
-    // Loop through every page to inspect its contents
     for (let i = 1; i <= pdfDocument.numPages; i++) {
         const page = await pdfDocument.getPage(i);
-
-        // 1. Extract Text
         const textContent = await page.getTextContent();
         const pageText = textContent.items.map(item => item.str).join(" ");
         totalText += pageText + "\n";
 
-        // 2. Look for Image Objects (The accurate way)
         const operatorList = await page.getOperatorList();
-
-        // We look for specific "Paint Image" commands in the PDF's internal code
         const hasImagesOnPage = operatorList.fnArray.some(
             fn => fn === pdfjs.OPS.paintImageXObject || fn === pdfjs.OPS.paintInlineImageXObject
         );
-
         if (hasImagesOnPage) imageCount++;
     }
 
-    // --- The Logic for Categorization ---
     const hasSignificantText = totalText.trim().length > 50;
     const hasImages = imageCount > 0;
 
     let category = "";
-    if (hasSignificantText && hasImages) {
-        category = "mixed";
-    } else if (hasSignificantText && !hasImages) {
-        category = "text_only";
-    } else if (!hasSignificantText && hasImages) {
-        category = "image_only"; // This is a classic scanned document
-    } else {
-        category = "empty_or_vector"; // Likely just shapes or empty
-    }
+    if (hasSignificantText && hasImages) category = "mixed";
+    else if (hasSignificantText && !hasImages) category = "text_only";
+    else if (!hasSignificantText && hasImages) category = "image_only";
+    else category = "empty_or_vector";
 
+    // 3. Return the data optimized for Gemini
     return {
         source: path.basename(userInput),
         type: "document",
         pages: pdfDocument.numPages,
-        content: totalText.trim(),
+        content: totalText.trim(), // Useful for searching or local logic
         extraction: category,
         image_detected: hasImages,
-        note: category === "image_only" ? "Document is a scan. Need to send images to Gemini." : null
+        // This is the "Secret Sauce" for Gemini Vision
+        raw_data: {
+            mimeType: "application/pdf",
+            data: fileBuffer.toString("base64")
+        },
+        note: category === "image_only" ? "Scanned PDF detected. Gemini Vision will handle OCR." : null
     };
 }
 
