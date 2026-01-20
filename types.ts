@@ -14,8 +14,10 @@ export interface Agent {
 
 export interface TranscriptLine {
   id: number;
-  agentId: string; // references Agent.id or 'player'
+  agentId: string; 
   agentName: string;
+  agentRole?: string;
+  agentColor?: string;
   text: string;
   timestamp: string;
   isUser?: boolean;

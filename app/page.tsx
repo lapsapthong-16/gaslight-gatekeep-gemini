@@ -1,16 +1,165 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Send, AlertTriangle, Play } from 'lucide-react';
+import { 
+  Send, AlertTriangle, Play, Pause, Square, 
+  FileText, Upload, ChevronRight, ChevronLeft, 
+  Mic, X, History, Settings, Briefcase
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { SmartCharacter } from '../components/SmartCharacter';
 import { INITIAL_AGENTS } from '../lib/constants';
 import { TranscriptLine, Emotion } from '../types';
+
+// --- HUD Components ---
+
+const TranscriptSidebar = ({ isOpen, transcript, onClose }: { isOpen: boolean, transcript: TranscriptLine[], onClose: () => void }) => (
+  <motion.div 
+    initial={{ x: -350 }}
+    animate={{ x: isOpen ? 0 : -350 }}
+    transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+    className="fixed top-0 left-0 h-full w-[350px] bg-black/60 backdrop-blur-2xl border-r border-white/10 z-[100] flex flex-col shadow-[10px_0_50px_rgba(0,0,0,0.5)]"
+  >
+    {/* Header */}
+    <div className="h-20 flex items-center justify-between px-6 border-b border-white/10 bg-white/5">
+      <div className="flex items-center gap-3">
+        <div className="p-2 bg-cyan-500/20 rounded-lg text-cyan-400">
+           <History size={18} />
+        </div>
+        <span className="font-sans font-bold text-sm tracking-widest text-white/90">MEETING LOGS</span>
+      </div>
+      <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full transition-colors text-white/50 hover:text-white cursor-pointer">
+        <X size={18} />
+      </button>
+    </div>
+    
+    {/* Chat Feed */}
+    <div className="flex-1 overflow-y-auto p-6 space-y-6">
+      {transcript.map((entry, i) => {
+        const color = entry.agentColor || '#34d399';
+        
+        return (
+          <div 
+            key={i} 
+            className="relative p-4 rounded-xl border bg-white/[0.03] border-white/10"
+            style={{ borderLeft: `3px solid ${color}` }}
+          >
+            {/* Tiny Role Tag */}
+            <div 
+              className="absolute -top-3 left-4 px-2 py-0.5 bg-slate-900 border border-white/10 text-[10px] font-bold uppercase tracking-wider rounded"
+              style={{ color }}
+            >
+              {entry.agentRole || 'SYSTEM'}
+            </div>
+            <p className="text-sm text-slate-300 leading-relaxed font-mono mt-1 opacity-90">
+              {entry.text}
+            </p>
+          </div>
+        );
+      })}
+    </div>
+  </motion.div>
+);
+
+const UploadModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => (
+  <AnimatePresence>
+    {isOpen && (
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center p-6"
+      >
+        <motion.div 
+          initial={{ scale: 0.9, y: 20 }}
+          animate={{ scale: 1, y: 0 }}
+          exit={{ scale: 0.9, y: 20 }}
+          className="bg-slate-900 border border-cyan-500/30 w-full max-w-lg rounded-2xl p-8 shadow-[0_0_50px_rgba(6,182,212,0.15)] relative overflow-hidden"
+        >
+          {/* Decorative Grid */}
+          <div className="absolute inset-0 opacity-10 pointer-events-none" 
+               style={{ backgroundImage: 'linear-gradient(#06b6d4 1px, transparent 1px), linear-gradient(90deg, #06b6d4 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
+
+          <button onClick={onClose} className="absolute top-4 right-4 text-white/50 hover:text-white cursor-pointer z-10 transition-colors">
+            <X />
+          </button>
+
+          <div className="relative z-10 text-center space-y-6">
+            <div className="w-16 h-16 bg-cyan-900/30 rounded-full flex items-center justify-center mx-auto border border-cyan-500/50 text-cyan-400">
+              <Upload size={32} />
+            </div>
+            
+            <div>
+              <h2 className="text-2xl font-bold text-white mb-2">Upload Intelligence</h2>
+              <p className="text-slate-400 text-sm">Drop your CSV, PDF, or Financial Reports to trigger the agents.</p>
+            </div>
+
+            <div className="border-2 border-dashed border-white/20 rounded-xl p-8 hover:border-cyan-500/50 hover:bg-cyan-500/5 transition-all cursor-pointer group">
+              <div className="text-slate-500 group-hover:text-cyan-400 font-mono text-xs uppercase tracking-widest">
+                Drag & Drop files here
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 pt-4">
+              <button onClick={onClose} className="px-4 py-2 text-sm text-slate-400 hover:text-white">Cancel</button>
+              <button onClick={onClose} className="px-6 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg font-bold text-sm shadow-lg shadow-cyan-500/20 transition-all">
+                Analyze Data
+              </button>
+            </div>
+          </div>
+        </motion.div>
+      </motion.div>
+    )}
+  </AnimatePresence>
+);
+
+interface ControlBarProps {
+  isPlaying: boolean;
+  onTogglePlay: () => void;
+  onStop: () => void;
+}
+
+const ControlBar = ({ isPlaying, onTogglePlay, onStop }: ControlBarProps) => (
+  <div className="absolute top-8 right-8 z-50 flex gap-3">
+    <button 
+      onClick={onTogglePlay}
+      className={`
+        h-12 w-12 rounded-full flex items-center justify-center backdrop-blur-md border transition-all duration-300 shadow-lg group cursor-pointer
+        ${isPlaying 
+          ? 'bg-amber-500/10 border-amber-500/30 text-amber-400 hover:bg-amber-500/20 hover:scale-110' 
+          : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 hover:scale-110'
+        }
+      `}
+      title={isPlaying ? "Pause Debate" : "Resume Debate"}
+    >
+      {isPlaying ? <Pause size={20} fill="currentColor" /> : <Play size={20} fill="currentColor" />}
+    </button>
+
+    <button 
+      onClick={onStop} 
+      className="h-12 w-12 rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-white/50 hover:text-red-400 hover:border-red-500/50 flex items-center justify-center transition-all hover:scale-110 cursor-pointer shadow-lg"
+      title="End Meeting"
+    >
+      <Square size={18} fill="currentColor" />
+    </button>
+    
+    <button className="h-12 w-12 rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-white/50 hover:text-white flex items-center justify-center transition-all hover:rotate-90 cursor-pointer shadow-lg">
+      <Settings size={18} />
+    </button>
+  </div>
+);
 
 export default function VisualNovelBoardroom() {
   const [activeLeftAgentId, setActiveLeftAgentId] = useState<string>('cfo');
   const [activeRightAgentId, setActiveRightAgentId] = useState<string>('cpo');
   const [talkingAgentId, setTalkingAgentId] = useState<string | 'player'>('cfo');
   const [inputValue, setInputValue] = useState('');
+  
+  // HUD States
+  const [showTranscript, setShowTranscript] = useState(false);
+  const [showUpload, setShowUpload] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(true);
+  const [transcriptHistory, setTranscriptHistory] = useState<TranscriptLine[]>([]);
   
   // State for character emotions
   // Maps agentId -> emotion state
@@ -31,6 +180,8 @@ export default function VisualNovelBoardroom() {
 
   // Simulation Logic
   useEffect(() => {
+    if (!isPlaying) return;
+
     const interval = setInterval(() => {
       // Randomly pick who talks next between the two active agents
       const speakers = [activeLeftAgentId, activeRightAgentId];
@@ -80,14 +231,19 @@ export default function VisualNovelBoardroom() {
   }, [activeLeftAgentId, activeRightAgentId]);
 
   const handleNewMessage = (id: string, name: string, text: string, isUser = false) => {
-    setCurrentLine({
+    const agent = INITIAL_AGENTS.find(a => a.id === id);
+    const newLine: TranscriptLine = {
         id: Date.now(),
         agentId: id,
         agentName: name,
+        agentRole: agent?.role || (isUser ? 'YOU' : ''),
+        agentColor: agent?.color || (isUser ? '#10b981' : '#fff'),
         text,
         timestamp: new Date().toLocaleTimeString(),
         isUser
-    });
+    };
+    setCurrentLine(newLine);
+    setTranscriptHistory(prev => [newLine, ...prev].slice(0, 50));
   };
 
   const handleSendMessage = () => {
@@ -142,6 +298,36 @@ export default function VisualNovelBoardroom() {
          />
          <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/50 to-slate-950/80 mix-blend-multiply" />
       </div>
+
+      {/* --- HUD OVERLAYS --- */}
+      <TranscriptSidebar 
+        isOpen={showTranscript} 
+        transcript={transcriptHistory} 
+        onClose={() => setShowTranscript(false)} 
+      />
+      <UploadModal 
+        isOpen={showUpload} 
+        onClose={() => setShowUpload(false)} 
+      />
+
+      {/* Top Left: Transcript Toggle */}
+      {!showTranscript && (
+        <button 
+            onClick={() => setShowTranscript(true)}
+            className="absolute top-6 left-6 z-40 flex items-center gap-3 px-4 py-2.5 bg-black/40 backdrop-blur-md rounded-lg border border-white/10 text-slate-300 hover:text-white hover:border-white/30 transition-all group cursor-pointer"
+        >
+            <FileText size={18} className="text-cyan-400 group-hover:scale-110 transition-transform" />
+            <span className="text-xs font-bold uppercase tracking-widest">Transcript</span>
+            <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse ml-2" />
+        </button>
+      )}
+
+      {/* Top Right: Meeting Controls */}
+      <ControlBar 
+        isPlaying={isPlaying} 
+        onTogglePlay={() => setIsPlaying(!isPlaying)}
+        onStop={() => alert("Meeting Adjourned")}
+      />
 
       {/* --- CENTER HOLOGRAPHIC CHART --- */}
       <div className="absolute top-[15%] left-1/2 -translate-x-1/2 z-10 w-[400px] md:w-[500px] h-[250px] pointer-events-none">
@@ -255,20 +441,41 @@ export default function VisualNovelBoardroom() {
               </div>
 
               {/* Player Input Area (Attached below or floating) */}
-              <div className="mt-4 flex gap-2 justify-end opacity-90 hover:opacity-100 transition-opacity">
-                 <input 
-                    className="bg-black/60 border border-slate-600 rounded px-4 py-2 w-full md:w-1/2 text-white focus:border-emerald-500 focus:outline-none focus:bg-black/80 transition-all font-[var(--font-inter)]"
-                    placeholder="Enter response..."
+              <div className="mt-4 flex gap-4 items-stretch mb-8 px-4 relative z-50">
+                {/* Upload Trigger Button (Square) */}
+                <button 
+                    onClick={() => setShowUpload(true)}
+                    className="h-14 w-14 shrink-0 bg-slate-900/80 backdrop-blur-xl border border-white/10 hover:border-cyan-400/50 rounded-2xl flex flex-col items-center justify-center text-cyan-400 shadow-lg transition-all group hover:-translate-y-1 cursor-pointer"
+                    title="Open Dossier"
+                >
+                    <Briefcase size={20} className="group-hover:scale-110 transition-transform" />
+                </button>
+
+                {/* Main Input Bar (Capsule) */}
+                <div className="flex-1 h-14 bg-slate-900/90 backdrop-blur-xl border border-white/10 rounded-2xl flex items-center px-2 shadow-2xl focus-within:border-white/30 focus-within:ring-1 focus-within:ring-white/20 transition-all">
+                  
+                  {/* Mic Icon */}
+                  <div className="w-10 h-10 flex items-center justify-center rounded-xl text-white/20 hover:text-white/80 cursor-pointer transition-colors">
+                      <Mic size={20} />
+                  </div>
+
+                  <input 
+                    type="text" 
+                    className="flex-1 bg-transparent border-none outline-none text-white px-2 font-mono text-sm placeholder:text-white/20 h-full"
+                    placeholder="Interrupt the board..."
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-                 />
-                 <button 
+                  />
+
+                  {/* Send Button (Pill) */}
+                  <button 
                     onClick={handleSendMessage}
-                    className="bg-emerald-700 hover:bg-emerald-600 text-white px-4 py-2 rounded font-bold uppercase tracking-wider flex items-center gap-2"
-                 >
-                     Send <Send size={16} />
-                 </button>
+                    className="h-10 pl-4 pr-5 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white rounded-xl font-bold text-xs uppercase tracking-wider flex items-center gap-2 shadow-lg shadow-emerald-900/50 transition-all hover:scale-105 cursor-pointer"
+                  >
+                    Send <Send size={14} />
+                  </button>
+                </div>
               </div>
 
           </div>
