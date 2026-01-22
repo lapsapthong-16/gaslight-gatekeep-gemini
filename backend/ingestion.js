@@ -10,6 +10,7 @@ if (!pdfjs.GlobalWorkerOptions.workerPort) {
 
 import { parse } from "csv-parse/sync";
 import XLSX from "xlsx";
+import { CSVDigester } from "./digester.js";
 
 // 'export' allow other scripts to use the function
 export async function ingestFile(userInput) {
@@ -26,7 +27,7 @@ export async function ingestFile(userInput) {
     }
 
     if (filetype === ".csv") {
-        return transformCSV(userInput);
+        return await transformCSV(userInput);
     }
 
     // 2 types of Excel file formats
@@ -94,19 +95,15 @@ async function transformPDF(userInput) {
 }
 
 // Function to transform CSV files
-function transformCSV(userInput) {
-    console.log("Transforming CSV...", userInput);
-    const rawfile = fs.readFileSync(userInput);
-    const results = parse(rawfile, {
-        columns: true,
-        skip_empty_lines: true,
-    });
+async function transformCSV(userInput) {
+    console.log("Transforming CSV with Digester...", userInput);
+    const digester = new CSVDigester(userInput);
+    const result = await digester.run();
 
     return {
         source: path.basename(userInput),
-        type: "tabular",
-        content: results,
-        extraction: "text"
+        type: "tabular_digest",
+        ...result
     };
 }
 
