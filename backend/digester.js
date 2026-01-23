@@ -14,7 +14,7 @@ export class CSVDigester {
         this.rawContent = null;
         this.delimiter = null;
         this.encoding = "utf-8";
-        
+
         // Internal table representation
         this.table = {
             columns: [], // Original column names
@@ -174,7 +174,7 @@ export class CSVDigester {
                     // Integer is also a number, so we prioritize the more specific one
                     let count = profile.stats[t];
                     if (t === "number") count += profile.stats["integer"];
-                    
+
                     if (count > maxCount) {
                         maxCount = count;
                         bestType = t;
@@ -183,7 +183,7 @@ export class CSVDigester {
 
                 profile.inferredType = bestType;
                 profile.confidence = maxCount / totalPopulated;
-                
+
                 // If confidence is low, call it mixed
                 if (profile.confidence < 0.7) {
                     profile.inferredType = "mixed";
@@ -201,24 +201,24 @@ export class CSVDigester {
      */
     async normalize() {
         console.log("[Phase 3] Normalizing data...");
-        
+
         const schemaMap = {};
         this.digest.schema.forEach(s => schemaMap[s.name] = s);
 
         this.table.rows = this.table.rows.map(row => {
             const normalizedRow = { _row: row._row };
-            
+
             this.table.columns.forEach(col => {
                 const rawValue = row[col];
                 const typeInfo = schemaMap[col];
-                
+
                 // Keep original raw for safety
                 normalizedRow[`${col}_raw`] = rawValue;
-                
+
                 // Normalize
                 normalizedRow[col] = this.normalizeValue(rawValue, typeInfo.inferredType);
             });
-            
+
             return normalizedRow;
         });
 
@@ -253,7 +253,7 @@ export class CSVDigester {
                     message: `Type inconsistency: inferred as ${col.inferredType} but confidence is ${(col.confidence * 100).toFixed(1)}%`
                 });
             }
-            
+
             // Extreme string lengths
             if (col.inferredType === "string") {
                 const lengths = this.table.rows.map(r => r[col.name]?.toString().length || 0);
@@ -378,7 +378,7 @@ export class CSVDigester {
     async persist() {
         console.log("[Phase 7] Persisting artifacts...");
         const artifactsDir = path.join(path.dirname(this.filePath), "digests", this.digest.meta.id);
-        
+
         if (!fs.existsSync(artifactsDir)) {
             fs.mkdirSync(artifactsDir, { recursive: true });
         }
@@ -396,7 +396,7 @@ export class CSVDigester {
         fs.writeFileSync(digestPath, JSON.stringify(this.digest, null, 2));
 
         console.log(`[Phase 7] Artifacts saved to: ${artifactsDir}`);
-        
+
         return {
             artifactsDir,
             digest: this.digest
@@ -416,6 +416,37 @@ export class CSVDigester {
         return await this.persist();
     }
 
+    /**
+     * Produces a compact "model-ready" payload for LLM input.
+     */
+    toModelPayload() {
+        return {
+            datasetSummary: {
+                name: this.digest.meta.name,
+                rowCount: this.digest.shape.rows,
+                colCount: this.digest.shape.cols,
+                creationDate: this.digest.meta.createdAt
+            },
+            schema: this.digest.schema.map(s => ({
+                name: s.name,
+                type: s.inferredType,
+                distinctCount: s.distinctCount,
+                missingRate: (s.missingRate * 100).toFixed(1) + "%"
+            })),
+            samples: {
+                head: this.digest.samples.head.map(r => {
+                    const { _row, ...data } = r;
+                    return data;
+                }),
+                random: this.digest.samples.random.map(r => {
+                    const { _row, ...data } = r;
+                    return data;
+                })
+            },
+            keySlices: this.digest.summaries
+        };
+    }
+
     detectValueType(val) {
         if (val === null || val === undefined) return "empty";
         const str = val.toString().trim();
@@ -424,7 +455,7 @@ export class CSVDigester {
         if (/^-?\d+$/.test(str)) return "integer";
         if (/^-?\d*\.\d+$/.test(str)) return "number";
         if (/^(true|false|yes|no|1|0)$/i.test(str)) return "boolean";
-        
+
         // Simple date check
         if (str.length > 5 && !isNaN(Date.parse(str))) {
             // Also ensure it's not just a number being misparsed as a date
@@ -461,14 +492,14 @@ export class CSVDigester {
     detectDelimiter(text) {
         const potentialDelimiters = [",", ";", "\t", "|"];
         const lines = text.split(/\r?\n/).filter(l => l.trim().length > 0).slice(0, 5);
-        
+
         let bestDelimiter = ",";
         let maxConsistencyScore = -1;
 
         potentialDelimiters.forEach(delim => {
             const counts = lines.map(line => line.split(delim).length);
             const avg = counts.reduce((a, b) => a + b, 0) / counts.length;
-            
+
             if (avg <= 1) return; // Not enough columns
 
             // Score: higher average count and lower standard deviation is better

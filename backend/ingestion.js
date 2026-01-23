@@ -9,7 +9,7 @@ if (!pdfjs.GlobalWorkerOptions.workerPort) {
 }
 
 import { parse } from "csv-parse/sync";
-import XLSX from "xlsx";
+import * as XLSX from "xlsx";
 import { CSVDigester } from "./digester.js";
 
 // 'export' allow other scripts to use the function
@@ -98,12 +98,13 @@ async function transformPDF(userInput) {
 async function transformCSV(userInput) {
     console.log("Transforming CSV with Digester...", userInput);
     const digester = new CSVDigester(userInput);
-    const result = await digester.run();
+    await digester.run();
+    const modelPayload = digester.toModelPayload();
 
     return {
         source: path.basename(userInput),
         type: "tabular_digest",
-        ...result
+        modelPayload: modelPayload
     };
 }
 
