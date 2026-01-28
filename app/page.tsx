@@ -3,8 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   Send, AlertTriangle, Play, Pause, Square,
-  FileText, Upload, ChevronRight, ChevronLeft,
-  Mic, X, History, Settings, Briefcase
+  FileText, X, History, Settings, Mic
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SmartCharacter } from '../components/SmartCharacter';
@@ -74,61 +73,7 @@ const TranscriptSidebar = ({ isOpen, transcript, onClose }: { isOpen: boolean, t
   </motion.div>
 );
 
-const UploadModal = ({ isOpen, onClose, onRunDebate }: { isOpen: boolean, onClose: () => void, onRunDebate: (filePath: string) => void }) => (
-  <AnimatePresence>
-    {isOpen && (
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center p-6"
-      >
-        <motion.div
-          initial={{ scale: 0.9, y: 20 }}
-          animate={{ scale: 1, y: 0 }}
-          exit={{ scale: 0.9, y: 20 }}
-          className="bg-slate-900 border border-cyan-500/30 w-full max-w-lg rounded-2xl p-8 shadow-[0_0_50px_rgba(6,182,212,0.15)] relative overflow-hidden"
-        >
-          {/* Decorative Grid */}
-          <div className="absolute inset-0 opacity-10 pointer-events-none"
-            style={{ backgroundImage: 'linear-gradient(#06b6d4 1px, transparent 1px), linear-gradient(90deg, #06b6d4 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
-
-          <button onClick={onClose} className="absolute top-4 right-4 text-white/50 hover:text-white cursor-pointer z-10 transition-colors">
-            <X />
-          </button>
-
-          <div className="relative z-10 text-center space-y-6">
-            <div className="w-16 h-16 bg-cyan-900/30 rounded-full flex items-center justify-center mx-auto border border-cyan-500/50 text-cyan-400">
-              <Upload size={32} />
-            </div>
-
-            <div>
-              <h2 className="text-2xl font-bold text-white mb-2">Upload Intelligence</h2>
-              <p className="text-slate-400 text-sm">Drop your CSV, PDF, or Financial Reports to trigger the agents.</p>
-            </div>
-
-            <div className="border-2 border-dashed border-white/20 rounded-xl p-8 hover:border-cyan-500/50 hover:bg-cyan-500/5 transition-all cursor-pointer group">
-              <div className="text-slate-500 group-hover:text-cyan-400 font-mono text-xs uppercase tracking-widest">
-                Drag & Drop files here
-                <p className="mt-2 text-[10px] opacity-50">(For MVP, we assume vgsales.csv is pre-selected)</p>
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-3 pt-4">
-              <button onClick={onClose} className="px-4 py-2 text-sm text-slate-400 hover:text-white cursor-pointer">Cancel</button>
-              <button
-                onClick={() => onRunDebate("backend/vgsales.csv")}
-                className="px-6 py-2 bg-gradient-to-r from-cyan-600 to-emerald-600 hover:from-cyan-500 hover:to-emerald-500 text-white rounded-lg font-bold text-sm shadow-lg shadow-cyan-500/20 transition-all cursor-pointer"
-              >
-                RUN DEBATE
-              </button>
-            </div>
-          </div>
-        </motion.div>
-      </motion.div>
-    )}
-  </AnimatePresence>
-);
+// UploadModal removed
 
 interface ControlBarProps {
   isPlaying: boolean;
@@ -138,55 +83,16 @@ interface ControlBarProps {
   onStop: () => void;
 }
 
-const ControlBar = ({ isPlaying, isDebating, lastDigest, onTogglePlay, onStop }: ControlBarProps) => (
-  <div className="absolute top-8 right-8 z-50 flex gap-3">
-    <button
-      onClick={onTogglePlay}
-      className={`
-        h-12 w-12 rounded-full flex items-center justify-center backdrop-blur-md border transition-all duration-300 shadow-lg group cursor-pointer
-        ${isPlaying
-          ? 'bg-amber-500/10 border-amber-500/30 text-amber-400 hover:bg-amber-500/20 hover:scale-110'
-          : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 hover:scale-110'
-        }
-      `}
-      title={isPlaying ? "Pause Debate" : "Resume Debate"}
-    >
-      {isPlaying ? <Pause size={20} fill="currentColor" /> : <Play size={20} fill="currentColor" />}
-    </button>
-
-    <button
-      onClick={onStop}
-      className="h-12 w-12 rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-white/50 hover:text-red-400 hover:border-red-500/50 flex items-center justify-center transition-all hover:scale-110 cursor-pointer shadow-lg"
-      title="Stop/Clear Debate"
-    >
-      <Square size={18} fill="currentColor" />
-    </button>
-
-    {isPlaying && !isDebating && lastDigest && (
-      <button
-        onClick={() => (window as any).triggerDebate?.()}
-        className="h-12 px-4 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/20 flex items-center gap-2 transition-all hover:scale-105 cursor-pointer shadow-lg"
-      >
-        <Briefcase size={16} />
-        <span className="text-[10px] font-bold uppercase tracking-widest">Next Round</span>
-      </button>
-    )}
-
-    <button className="h-12 w-12 rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-white/50 hover:text-white flex items-center justify-center transition-all hover:rotate-90 cursor-pointer shadow-lg">
-      <Settings size={18} />
-    </button>
-  </div>
-);
+// ControlBar removed
 
 export default function VisualNovelBoardroom() {
   const [activeLeftAgentId, setActiveLeftAgentId] = useState<string>('cfo');
   const [activeRightAgentId, setActiveRightAgentId] = useState<string>('cpo');
-  const [talkingAgentId, setTalkingAgentId] = useState<string | 'player'>('cfo');
+  const [talkingAgentId, setTalkingAgentId] = useState<string | 'player' | null>(null);
   const [inputValue, setInputValue] = useState('');
 
   // HUD States
   const [showTranscript, setShowTranscript] = useState(false);
-  const [showUpload, setShowUpload] = useState(false);
   const [isPlaying, setIsPlaying] = useState(true);
   const [transcriptHistory, setTranscriptHistory] = useState<TranscriptLine[]>([]);
   const stopDebateRef = React.useRef(false);
@@ -205,25 +111,14 @@ export default function VisualNovelBoardroom() {
       setTranscriptHistory([]);
       localStorage.removeItem('debate_transcript');
     };
-    (window as any).triggerDebate = () => {
-      runDebate("backend/vgsales.csv");
-    };
   }, []);
 
   // Persistence Layer
-  const [lastDigest, setLastDigest] = useState<any>(null);
-
   useEffect(() => {
     const saved = localStorage.getItem('debate_transcript');
-    const savedDigest = localStorage.getItem('last_digest');
     if (saved) {
       try {
         setTranscriptHistory(JSON.parse(saved));
-      } catch (e) { console.error(e); }
-    }
-    if (savedDigest) {
-      try {
-        setLastDigest(JSON.parse(savedDigest));
       } catch (e) { console.error(e); }
     }
   }, []);
@@ -234,52 +129,38 @@ export default function VisualNovelBoardroom() {
     }
   }, [transcriptHistory]);
 
-  useEffect(() => {
-    if (lastDigest) {
-      localStorage.setItem('last_digest', JSON.stringify(lastDigest));
-    }
-  }, [lastDigest]);
 
   // The "Current Line" to display in the big box
   const [currentLine, setCurrentLine] = useState<TranscriptLine>({
     id: 1,
-    agentId: 'cfo',
-    agentName: 'THE GASLIGHTER',
-    text: "Look at this chart! The red line is NOT going down! That means we fire the interns, right?",
-    timestamp: '09:01 AM'
+    agentId: 'system',
+    agentName: 'SYSTEM',
+    text: "Boardroom standby. Enter a topic below to initiate the simulation...",
+    timestamp: new Date().toLocaleTimeString()
   });
 
-  // Debate Runner
+  // Typewriter Effect State
+  const [displayedText, setDisplayedText] = useState("");
+  const [isTyping, setIsTyping] = useState(false);
+
+  // Sequencer State
+  const [conversationQueue, setConversationQueue] = useState<any[]>([]);
   const [isDebating, setIsDebating] = useState(false);
 
-  const runDebate = async (filePath: string) => {
+  const runDebate = async (topic: string) => {
     setIsDebating(true);
-    setShowUpload(false);
     stopDebateRef.current = false;
 
     try {
       const response = await fetch('/api/debate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ filePath })
+        body: JSON.stringify({ topic })
       });
 
       const data = await response.json();
-      if (data.success) {
-        setLastDigest(data.digest);
-        // Feed the transcript into the UI one by one
-        const transcript = data.transcript;
-        for (let i = 0; i < transcript.length; i++) {
-          if (stopDebateRef.current) break;
-          const turn = transcript[i];
-          const agentId = turn.speaker.includes("Marcus") ? "cfo" : (turn.speaker.includes("Sarah") ? "cto" : "cpo");
-
-          setTalkingAgentId(agentId);
-          handleNewMessage(agentId, turn.speaker, turn.message);
-
-          // Wait a few seconds between turns for the user to read
-          await new Promise(resolve => setTimeout(resolve, 6000));
-        }
+      if (data.success && data.transcript) {
+        setConversationQueue(data.transcript);
       }
     } catch (error) {
       console.error("Debate failure:", error);
@@ -288,57 +169,77 @@ export default function VisualNovelBoardroom() {
     }
   };
 
-  // Simulation Logic (Only runs if not debating)
+  // The Sequencer Effect
   useEffect(() => {
-    if (!isPlaying || isDebating) return;
+    if (conversationQueue.length === 0 || stopDebateRef.current || isTyping) return;
 
+    const showNextLine = async () => {
+      const [nextLine, ...remaining] = conversationQueue;
+      
+      // Map speaker names to IDs
+      const agentMap: Record<string, string> = {
+        "The Bull": "cfo",
+        "The Guardian": "cto",
+        "The Scout": "cpo"
+      };
+      const agentId = agentMap[nextLine.speaker] || "cfo";
+      const agent = INITIAL_AGENTS.find(a => a.id === agentId);
+
+      setTalkingAgentId(agentId);
+      setEmotions(prev => ({ ...prev, [agentId]: nextLine.emotion || 'talking' }));
+
+      // Auto-swap characters onto the stage if the speaker is hidden
+      if (agentId !== activeLeftAgentId && agentId !== activeRightAgentId) {
+        // If we need to bring someone on, replace the one that ISN'T currentLine.agentId 
+        // (the previous speaker) to keep the "back and forth" feel
+        if (activeLeftAgentId === currentLine.agentId) {
+          setActiveRightAgentId(agentId);
+        } else {
+          setActiveLeftAgentId(agentId);
+        }
+      }
+      
+      const newLine: TranscriptLine = {
+        id: Date.now(),
+        agentId: agentId,
+        agentName: nextLine.speaker,
+        agentRole: agent?.role || '',
+        agentColor: agent?.color || '#fff',
+        text: nextLine.message,
+        timestamp: new Date().toLocaleTimeString(),
+      };
+
+      setCurrentLine(newLine);
+      setTranscriptHistory(prev => [newLine, ...prev].slice(0, 50));
+      setConversationQueue(remaining);
+    };
+
+    const timer = setTimeout(showNextLine, 1800); // 1.8s pause for "thinking" and "reacting"
+    return () => clearTimeout(timer);
+  }, [conversationQueue, isTyping]);
+
+  // Typewriter Effect
+  useEffect(() => {
+    if (!currentLine.text) return;
+    
+    setDisplayedText("");
+    setIsTyping(true);
+    let i = 0;
+    const fullText = currentLine.text;
+    
     const interval = setInterval(() => {
-      // Randomly pick who talks next between the two active agents
-      const speakers = [activeLeftAgentId, activeRightAgentId];
-      const nextSpeakerId = speakers[Math.floor(Math.random() * speakers.length)];
-
-      setTalkingAgentId(nextSpeakerId);
-
-      // Randomly trigger an "Angry" or "Damaged" emotion
-      const roll = Math.random();
-      let newEmotion: Emotion = 'idle';
-      let text = "I'm just circling back on this.";
-
-      const agent = INITIAL_AGENTS.find(a => a.id === nextSpeakerId);
-
-      // Reset everyone to idle first (optional, but keeps it dynamic)
-      setEmotions(prev => {
-        const next = { ...prev };
-        Object.keys(next).forEach(k => { next[k] = 'idle' });
-        return next;
-      });
-
-      if (roll > 0.7) {
-        newEmotion = 'angry';
-        text = "PER MY LAST EMAIL, you are completely wrong!";
-      } else if (roll > 0.4) {
-        newEmotion = 'idle'; // Will act as 'talking' when speaking
-        text = agent?.dialogue || "Synergy.";
-      } else {
-        newEmotion = 'damaged';
-        text = "Wait... are we actually liable for that?";
+      setDisplayedText(fullText.substring(0, i + 1));
+      i++;
+      if (i >= fullText.length) {
+        clearInterval(interval);
+        setIsTyping(false);
       }
+    }, 30); // 30ms per char as per spec
 
-      setEmotions(prev => ({ ...prev, [nextSpeakerId]: newEmotion }));
-
-      if (agent) {
-        handleNewMessage(agent.id, agent.name, text);
-      }
-
-      // Occasionally swap the right agent
-      if (Math.random() > 0.85) {
-        const inactive = INITIAL_AGENTS.find(a => a.id !== activeLeftAgentId && a.id !== activeRightAgentId);
-        if (inactive) setActiveRightAgentId(inactive.id);
-      }
-
-    }, 5000); // Turn speed
     return () => clearInterval(interval);
-  }, [activeLeftAgentId, activeRightAgentId]);
+  }, [currentLine]);
+
+  // Simulation Logic removed
 
   const handleNewMessage = (id: string, name: string, text: string, isUser = false) => {
     const agent = INITIAL_AGENTS.find(a => a.id === id);
@@ -357,16 +258,14 @@ export default function VisualNovelBoardroom() {
   };
 
   const handleSendMessage = () => {
-    if (!inputValue.trim()) return;
-    handleNewMessage('player', 'YOU', inputValue, true);
-    setTalkingAgentId('player');
+    if (!inputValue.trim() || isDebating) return;
+    
+    const topic = inputValue;
+    handleNewMessage('system', 'SYSTEM', `Initializing simulation for: "${topic}"`, false);
+    setTalkingAgentId(null); 
 
-    // Everyone feels damaged when the player intervenes
-    setEmotions({
-      cfo: 'damaged',
-      cto: 'damaged',
-      cpo: 'damaged'
-    });
+    // Start the debate with the topic
+    runDebate(topic);
 
     setInputValue('');
   };
@@ -415,36 +314,11 @@ export default function VisualNovelBoardroom() {
         transcript={transcriptHistory}
         onClose={() => setShowTranscript(false)}
       />
-      <UploadModal
-        isOpen={showUpload}
-        onClose={() => setShowUpload(false)}
-        onRunDebate={runDebate}
-      />
+      {/* UploadModal removed */}
 
-      {/* Top Left: Transcript Toggle */}
-      {!showTranscript && (
-        <button
-          onClick={() => setShowTranscript(true)}
-          className="absolute top-6 left-6 z-40 flex items-center gap-3 px-4 py-2.5 bg-black/40 backdrop-blur-md rounded-lg border border-white/10 text-slate-300 hover:text-white hover:border-white/30 transition-all group cursor-pointer"
-        >
-          <FileText size={18} className="text-cyan-400 group-hover:scale-110 transition-transform" />
-          <span className="text-xs font-bold uppercase tracking-widest">Transcript</span>
-          <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse ml-2" />
-        </button>
-      )}
+      {/* Top Left: Transcript Toggle removed */}
 
-      {/* Top Right: Meeting Controls */}
-      <ControlBar
-        isPlaying={isPlaying}
-        isDebating={isDebating}
-        lastDigest={lastDigest}
-        onTogglePlay={() => setIsPlaying(!isPlaying)}
-        onStop={() => {
-          stopDebateRef.current = true;
-          setTalkingAgentId('cfo');
-          setEmotions({ cfo: 'idle', cto: 'idle', cpo: 'idle' });
-        }}
-      />
+      {/* Top Right: Meeting Controls removed */}
 
       {/* --- CENTER HOLOGRAPHIC CHART --- */}
       <div className="absolute top-[15%] left-1/2 -translate-x-1/2 z-10 w-[400px] md:w-[500px] h-[250px] pointer-events-none">
@@ -499,7 +373,12 @@ export default function VisualNovelBoardroom() {
       {/* --- CHARACTER STAGE --- */}
       <div className="flex-1 flex items-end justify-between px-0 md:px-10 pb-0 relative z-20 overflow-hidden">
         {/* LEFT AGENT */}
-        <div className="w-[45%] h-[85vh] relative flex items-end justify-start -ml-10 md:ml-0">
+        <div 
+          className="w-[45%] h-[85vh] relative flex items-end justify-start -ml-10 md:ml-0 transition-all duration-500"
+          style={{ 
+            filter: talkingAgentId === leftAgent.id ? `drop-shadow(0 0 20px ${leftAgent.color}88)` : 'none'
+          }}
+        >
           <SmartCharacter
             key={leftAgent.id}
             assets={leftAgent.images}
@@ -509,7 +388,12 @@ export default function VisualNovelBoardroom() {
         </div>
 
         {/* RIGHT AGENT */}
-        <div className="w-[45%] h-[85vh] relative flex items-end justify-end -mr-10 md:mr-0">
+        <div 
+          className="w-[45%] h-[85vh] relative flex items-end justify-end -mr-10 md:mr-0 transition-all duration-500"
+          style={{ 
+            filter: talkingAgentId === rightAgent.id ? `drop-shadow(0 0 20px ${rightAgent.color}88)` : 'none'
+          }}
+        >
           <SmartCharacter
             key={rightAgent.id}
             assets={rightAgent.images}
@@ -542,7 +426,7 @@ export default function VisualNovelBoardroom() {
           >
             {/* Text Content */}
             <p className="text-xl md:text-2xl font-medium leading-relaxed drop-shadow-md text-slate-100 font-[var(--font-inter)]">
-              "{currentLine.text}"
+              "{displayedText}"{isTyping && <span className="animate-pulse">|</span>}
             </p>
 
             {/* Next Arrow Indicator */}
@@ -559,14 +443,7 @@ export default function VisualNovelBoardroom() {
 
           {/* Player Input Area (Attached below or floating) */}
           <div className="mt-4 flex gap-4 items-stretch mb-8 px-4 relative z-50">
-            {/* Upload Trigger Button (Square) */}
-            <button
-              onClick={() => setShowUpload(true)}
-              className="h-14 w-14 shrink-0 bg-slate-900/80 backdrop-blur-xl border border-white/10 hover:border-cyan-400/50 rounded-2xl flex flex-col items-center justify-center text-cyan-400 shadow-lg transition-all group hover:-translate-y-1 cursor-pointer"
-              title="Open Dossier"
-            >
-              <Briefcase size={20} className="group-hover:scale-110 transition-transform" />
-            </button>
+            {/* Briefcase icon removed, we only use input now */}
 
             {/* Main Input Bar (Capsule) */}
             <div className="flex-1 h-14 bg-slate-900/90 backdrop-blur-xl border border-white/10 rounded-2xl flex items-center px-2 shadow-2xl focus-within:border-white/30 focus-within:ring-1 focus-within:ring-white/20 transition-all">

@@ -15,9 +15,9 @@ const getAvatar = (text: string, bg: string, color: string) =>
 export const INITIAL_AGENTS: Agent[] = [
   {
     id: 'cfo',
-    name: 'THE GEMINI',
-    role: 'CFO',
-    color: '#34d399', // Emerald 400
+    name: 'THE BULL',
+    role: 'Aggressive / Risk-Lover',
+    color: '#10b981', // Emerald 500
     gradient: 'from-emerald-900 to-slate-900',
     images: {
       idle: '/characters/gemini/idle.png',
@@ -25,13 +25,13 @@ export const INITIAL_AGENTS: Agent[] = [
       angry: '/characters/gemini/angry.png',
       damaged: '/characters/gemini/idle.png',
     },
-    dialogue: "Those numbers aren't real if we don't look at them.",
+    dialogue: "LEVERAGE IS THE ONLY TRUTH!",
   },
   {
     id: 'cto',
-    name: 'THE GATEKEEPER',
-    role: 'CTO',
-    color: '#fb923c', // Orange 400
+    name: 'THE GUARDIAN',
+    role: 'Paranoid / Risk-Averse',
+    color: '#f97316', // Orange 500
     gradient: 'from-orange-900 to-slate-900',
     images: {
       idle: '/characters/gatekeep/idle.png',
@@ -39,20 +39,20 @@ export const INITIAL_AGENTS: Agent[] = [
       angry: '/characters/gatekeep/angry.png',
       damaged: '/characters/gatekeep/idle.png',
     },
-    dialogue: "We can't ship that. The tech debt would kill us.",
+    dialogue: "We are one vulnerability away from total collapse.",
   },
   {
     id: 'cpo',
-    name: 'THE GASLIGHTER',
-    role: 'CPO',
-    color: '#e879f9', // Fuchsia 400
-    gradient: 'from-fuchsia-900 to-slate-900',
+    name: 'THE SCOUT',
+    role: 'Gen-Z / Trend-Obsessed',
+    color: '#f472b6', // Pink 400
+    gradient: 'from-pink-900 to-slate-900',
     images: {
       idle: '/characters/gaslight/idle.png',
       talking: '/characters/gaslight/talk.png',
       angry: '/characters/gaslight/angry.png',
       damaged: '/characters/gaslight/idle.png',
     },
-    dialogue: "I've analyzed the trajectory. It is... suboptimal.",
+    dialogue: "The vibes are actually rancid right now.",
   }
 ];

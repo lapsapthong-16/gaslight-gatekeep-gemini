@@ -1,14 +1,33 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { config } from "dotenv";
+import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 
 // --- SETUP DOTENV ---
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-config({ path: path.resolve(__dirname, ".env") });
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+// Try loading from backend/.env first, then root .env
+const backendEnvPath = path.resolve(__dirname, ".env");
+const rootEnvPath = path.resolve(__dirname, "..", ".env");
+
+if (fs.existsSync(backendEnvPath)) {
+    config({ path: backendEnvPath });
+} else if (fs.existsSync(rootEnvPath)) {
+    config({ path: rootEnvPath });
+} else {
+    config(); // Default behavior
+}
+
+const apiKey = process.env.GEMINI_API_KEY;
+if (!apiKey || apiKey.includes("your-api-key") || apiKey === "") {
+    console.error("❌ CRITICAL ERROR: GEMINI_API_KEY is missing or invalid in .env");
+    console.error("Please add your key to a .env file in the root or backend directory.");
+    process.exit(1); // Exit early if we can't authenticate
+}
+
+const genAI = new GoogleGenerativeAI(apiKey);
 
 /**
  * ModelGateway handles clean, structured calls to Gemini.
